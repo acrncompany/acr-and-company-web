@@ -1,0 +1,89 @@
+@if (site(); as s) {
+  <footer class="footer">
+    @if (showCta()) {
+    <section class="cta" aria-labelledby="cta-title">
+      <div class="container cta__inner">
+        <h2 class="cta__title" id="cta-title">{{ s.cta.title }}</h2>
+        <p class="cta__text">{{ s.cta.text }}</p>
+        <a class="btn btn--gold cta__btn" [routerLink]="s.cta.path">
+          {{ s.cta.buttonLabel }}
+          <app-icon name="arrow-right" [size]="16" />
+        </a>
+      </div>
+    </section>
+    }
+
+    <div class="container footer__grid">
+      <div class="footer__brand">
+        <a class="brand" routerLink="/" [attr.aria-label]="s.name + ' – home'">
+          <img class="brand__mark" [src]="s.logo.src" [alt]="s.logo.alt" width="56" height="34" />
+          <span class="brand__divider" aria-hidden="true"></span>
+          <span class="brand__text">
+            <span class="brand__name">{{ s.name }}</span>
+            <span class="brand__tag">{{ s.tagline }}</span>
+          </span>
+        </a>
+        <p class="footer__about">{{ s.footer.about }}</p>
+      </div>
+
+      <nav class="footer__col" aria-label="Quick links">
+        <h2 class="footer__heading">Quick Links</h2>
+        <ul>
+          @for (link of s.footer.quickLinks; track link.label) {
+            <li>
+              <a [routerLink]="link.path">{{ link.label }}</a>
+            </li>
+          }
+        </ul>
+      </nav>
+
+      @if (nav(); as n) {
+        <nav class="footer__col" aria-label="Services">
+          <h2 class="footer__heading">Services</h2>
+          <ul>
+            @for (cat of n.serviceCategories; track cat.title) {
+              <li>
+                <a [routerLink]="cat.path">{{ cat.title }}</a>
+              </li>
+            }
+          </ul>
+        </nav>
+      }
+
+      <div class="footer__col">
+        <h2 class="footer__heading">Contact</h2>
+        <ul class="contact">
+          <li>
+            <app-icon name="map-pin" [size]="18" />
+            <address>
+              @for (line of s.contact.addressLines; track line) {
+                {{ line }}<br />
+              }
+            </address>
+          </li>
+          <li>
+            <app-icon name="mail" [size]="18" />
+            <a [href]="'mailto:' + s.contact.email">{{ s.contact.email }}</a>
+          </li>
+          <li>
+            <app-icon name="phone" [size]="18" />
+            <a [href]="'tel:' + s.contact.phoneRaw">{{ s.contact.phone }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <div class="container footer__bottom-inner">
+        <p>© {{ year }} {{ s.footer.copyright }}</p>
+        <p>
+          @for (t of s.footer.tagline; track t; let last = $last) {
+            {{ t }}@if (!last) {
+              <span class="sep"> | </span>
+            }
+          }
+        </p>
+      </div>
+    </div>
+  </footer>
+}

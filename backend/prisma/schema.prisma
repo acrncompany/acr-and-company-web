@@ -1,0 +1,439 @@
+// Prisma schema for the ACR & Company website (PostgreSQL). Same conventions as acr-innovative-web.
+//  - sortOrder: lower numbers appear first.
+//  - status: DRAFT items are never shown on the public site.
+//  - Images are never stored in the DB, only a Media row (path + alt text) that other tables point to.
+//  - Media FKs use onDelete: NoAction (not Restrict): it blocks the delete the same way, but PostgreSQL then reports a plain FK error (Prisma P2003). With Restrict it reports an unmapped code and the API would return 500. A still-used image can't be deleted (the API reports where it is used).
+//  - Icons are stored as the NAME of an icon in the website's icon set (frontend shared/icon/icon.ts), e.g. "shield".
+//  - Multi-line text fields: one item per line (addressLines, footerTaglines, businessHours).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// PostgreSQL everywhere (local, Neon test, VPS). Plain Postgres only: no provider-specific features.
+// DATABASE_URL = runtime connection (a pooler URL is fine); DIRECT_URL = direct connection used by migrations.
+// Where there is no pooler (local, VPS) set both to the same URL.
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Status {
+  DRAFT
+  PUBLISHED
+}
+
+enum MenuLocation {
+  HEADER
+  FOOTER
+}
+
+enum BlockType {
+  TEXT // single line
+  TEXTAREA // plain multi-line
+  RICHTEXT // sanitised HTML
+  IMAGE // mediaId
+  LINK // value = URL or path (its label is a separate TEXT block)
+}
+
+enum StatGroup {
+  HOME_HERO // "20+ Years of Excellence" ...
+  ABOUT_STORY // "20+ Years", "2000+ Clients" ...
+}
+
+// Icon + title + text repeaters (one table keeps the admin simple).
+enum FeatureGroup {
+  HOME_WHY_CHOOSE // "Why Choose ACR & Company" (6)
+  HOME_APPROACH // "How We Work With You" (3 steps)
+  ABOUT_VALUE // Integrity / Excellence / Innovation
+  CAREER_PERK // "Why Work With Us" (4)
+}
+
+enum IndustryTone {
+  BLUE
+  AMBER
+  GREEN
+  VIOLET
+  ROSE
+  ORANGE
+  TEAL
+  SLATE
+}
+
+enum MessageType {
+  CONTACT // contact page form
+  CONSULTATION // "Book a Consultation" modal
+}
+
+// ---------------------------------------------------------------- media
+
+model Media {
+  id        Int      @id @default(autoincrement())
+  path      String   @unique @db.VarChar(500) // relative to UPLOAD_DIR, served at /uploads/<path>
+  alt       String   @db.VarChar(300)
+  width     Int?
+  height    Int?
+  mimeType  String   @db.VarChar(100)
+  sizeBytes Int
+  createdAt DateTime @default(now())
+
+  // reverse relations (used to build the "where is this used" list)
+  settingsLogo    SiteSettings[] @relation("SettingsLogo")
+  settingsFavicon SiteSettings[] @relation("SettingsFavicon")
+  settingsOg      SiteSettings[] @relation("SettingsOg")
+  pagesOg         Page[]
+  blocks          ContentBlock[]
+  team            TeamMember[]
+  servicesOg      Service[]
+  postsCover      Post[]         @relation("PostCover")
+  postsOg         Post[]         @relation("PostOg")
+  jobsOg          Job[]
+}
+
+// ---------------------------------------------------------------- site-wide settings
+
+// Single row (id = 1). Created by the content seed. Everything site-wide lives here.
+model SiteSettings {
+  id           Int    @id @default(1)
+  // identity
+  siteName     String @db.VarChar(200) // "ACR & Company | Chartered Accountants & Business Consultants" (default <title>)
+  brandName    String @db.VarChar(200) // "ACR & Company" (header text, JSON-LD name)
+  tagline      String @db.VarChar(300) // "Chartered Accountants"
+  legalName    String @db.VarChar(250)
+  foundingYear Int
+  description  String @db.VarChar(500) // one-line firm description
+  logoId       Int?
+  faviconId    Int?
+
+  // contact details (contact page, footer, careers box, JSON-LD)
+  addressLines      String @db.Text // one line per row
+  contactEmail      String @db.VarChar(200)
+  contactPhone      String @db.VarChar(50) // display format: "+91 94471 57549"
+  contactPhoneRaw   String @db.VarChar(30) // tel: / JSON-LD format, digits with country code
+  businessHours     String @db.Text // one line per row: "Mon–Sat: 9:30 AM – 6:00 PM"
+  mapQuery          String @db.VarChar(300) // Google Maps search text (embed + "Open in Maps")
+  careersEmail      String @db.VarChar(200) // default "Apply Now" address and application alerts
+  notificationEmail String @db.VarChar(200) // where contact / consultation alerts are sent
+
+  // WhatsApp: the ONLY place the number and message are stored. Every WhatsApp link on the website is built
+  // from these two fields by one helper: https://wa.me/<digits>?text=<URL-encoded message>.
+  whatsappNumber  String @db.VarChar(30) // country code + digits, e.g. 919XXXXXXXXX (seeded as "[placeholder]")
+  whatsappMessage String @db.VarChar(500) // pre-filled chat text
+
+  // default call-to-action band above the footer (pages can switch it off in Page.showCta)
+  ctaTitle       String @db.VarChar(200)
+  ctaText        String @db.VarChar(400)
+  ctaButtonLabel String @db.VarChar(100)
+  ctaPath        String @db.VarChar(300)
+
+  // header + footer
+  headerButtonLabel String @db.VarChar(100) // "Book Consultation"
+  headerButtonUrl   String @db.VarChar(300)
+  footerAbout       String @db.Text
+  footerCopyright   String @db.VarChar(300) // shown after the © year: "ACR & Company. All Rights Reserved."
+  footerTaglines    String @db.Text // one per row: Chartered Accountants / Business Consultants / Tax Advisors
+
+  // site-level SEO + JSON-LD
+  titleSuffix            String @db.VarChar(200) // "Page — suffix"
+  defaultMetaDescription String @db.VarChar(400)
+  keywords               String @db.VarChar(500)
+  author                 String @db.VarChar(200)
+  themeColor             String @db.VarChar(20)
+  defaultOgImageId       Int?
+  orgStreet              String @db.VarChar(300)
+  orgLocality            String @db.VarChar(100)
+  orgRegion              String @db.VarChar(100)
+  orgPostalCode          String @db.VarChar(20)
+  orgCountryCode         String @db.VarChar(2)
+
+  updatedAt DateTime @updatedAt
+
+  logo      Media? @relation("SettingsLogo", fields: [logoId], references: [id], onDelete: NoAction)
+  favicon   Media? @relation("SettingsFavicon", fields: [faviconId], references: [id], onDelete: NoAction)
+  defaultOg Media? @relation("SettingsOg", fields: [defaultOgImageId], references: [id], onDelete: NoAction)
+}
+
+model SocialLink {
+  id        Int     @id @default(autoincrement())
+  platform  String  @db.VarChar(50) // linkedin, facebook, instagram, x, youtube...
+  url       String  @db.VarChar(500)
+  visible   Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+// Header links and footer "quick links". The Services mega-menu and the footer Services list are NOT stored
+// here: they are built from ServiceCategory + Service. Mark the Services header item with isMegaMenu.
+model MenuItem {
+  id         Int          @id @default(autoincrement())
+  location   MenuLocation
+  label      String       @db.VarChar(100)
+  url        String       @db.VarChar(300)
+  exact      Boolean      @default(false) // active only on an exact URL match (Home)
+  isMegaMenu Boolean      @default(false) // header only: opens the Services mega-menu
+  visible    Boolean      @default(true)
+  sortOrder  Int          @default(0)
+}
+
+// ---------------------------------------------------------------- pages, SEO & one-off content
+
+// SEO record for each fixed page: home, about, services, learning, careers, contact.
+model Page {
+  id              Int      @id @default(autoincrement())
+  key             String   @unique @db.VarChar(50)
+  title           String   @db.VarChar(200) // "Contact Us" (used in "Page — Brand" titles and the admin)
+  slug            String   @db.VarChar(100) // "" for home
+  metaTitle       String?  @db.VarChar(200)
+  metaDescription String?  @db.VarChar(400)
+  ogType          String   @default("website") @db.VarChar(30)
+  ogImageId       Int?
+  noindex         Boolean  @default(false)
+  showCta         Boolean  @default(true) // the "Ready to grow your business?" band above the footer
+  priority        Decimal  @default(0.5) @db.Decimal(2, 1) // sitemap priority 0.0-1.0
+  updatedAt       DateTime @updatedAt
+
+  ogImage Media? @relation(fields: [ogImageId], references: [id], onDelete: NoAction)
+}
+
+// Every one-off string/image on a page: heroes, section headings, button labels, form texts, map labels.
+// blockKey is dotted, e.g. home.hero.title, home.faq.aside_title, contact.form.success_message.
+model ContentBlock {
+  id        Int       @id @default(autoincrement())
+  pageKey   String    @db.VarChar(50) // home, about, services, learning, careers, contact, consultation, shared
+  blockKey  String    @db.VarChar(100)
+  label     String    @db.VarChar(200) // human label shown in the admin
+  help      String    @default("") @db.VarChar(500) // one-line help text shown under the field in the admin
+  type      BlockType @default(TEXT)
+  value     String    @default("")
+  mediaId   Int?
+  sortOrder Int       @default(0)
+  updatedAt DateTime  @updatedAt
+
+  media Media? @relation(fields: [mediaId], references: [id], onDelete: NoAction)
+
+  @@unique([pageKey, blockKey])
+}
+
+// ---------------------------------------------------------------- repeatable content
+
+model Stat {
+  id        Int       @id @default(autoincrement())
+  group     StatGroup
+  value     String    @db.VarChar(30) // shown as typed: "20+", "2,000+"
+  label     String    @db.VarChar(150)
+  status    Status    @default(PUBLISHED)
+  sortOrder Int       @default(0)
+}
+
+model FeatureItem {
+  id        Int          @id @default(autoincrement())
+  group     FeatureGroup
+  icon      String       @default("") @db.VarChar(60)
+  title     String       @db.VarChar(200)
+  body      String       @db.Text
+  status    Status       @default(PUBLISHED)
+  sortOrder Int          @default(0)
+}
+
+model Faq {
+  id        Int    @id @default(autoincrement())
+  pageKey   String @default("home") @db.VarChar(50) // which page shows it (only "home" today)
+  question  String @db.VarChar(300)
+  answer    String @db.Text
+  status    Status @default(PUBLISHED)
+  sortOrder Int    @default(0)
+}
+
+model Industry {
+  id        Int          @id @default(autoincrement())
+  icon      String       @db.VarChar(60)
+  label     String       @db.VarChar(100)
+  tone      IndustryTone @default(BLUE)
+  status    Status       @default(PUBLISHED)
+  sortOrder Int          @default(0)
+}
+
+// About page "Pan-India & Middle East Presence" chips.
+model Location {
+  id        Int    @id @default(autoincrement())
+  name      String @db.VarChar(100)
+  status    Status @default(PUBLISHED)
+  sortOrder Int    @default(0)
+}
+
+// About page founder (the page shows the first published person).
+model TeamMember {
+  id             Int    @id @default(autoincrement())
+  name           String @db.VarChar(150)
+  role           String @db.VarChar(200)
+  qualifications String @default("") @db.VarChar(200) // "FCA, DISA, B.Com"
+  bio            String @db.Text // paragraphs separated by a blank line
+  fallbackIcon   String @default("graduation-cap") @db.VarChar(60) // shown when there is no photo
+  photoId        Int?
+  status         Status @default(PUBLISHED)
+  sortOrder      Int    @default(0)
+
+  photo Media? @relation(fields: [photoId], references: [id], onDelete: NoAction)
+}
+
+// ---------------------------------------------------------------- services (single source)
+// Drives: the Services page, the mega-menu, the footer Services list, the Home "Our Core Services" cards
+// and the Contact page "Service interested in" dropdown (and the consultation modal's).
+
+model ServiceCategory {
+  id         Int       @id @default(autoincrement())
+  title      String    @db.VarChar(150) // "Audit & Assurance": tab label, heading, mega-menu column, Home card title
+  slug       String    @unique @db.VarChar(160)
+  icon       String    @db.VarChar(60)
+  summary    String    @db.VarChar(300) // Home card text
+  showOnHome Boolean   @default(true)
+  status     Status    @default(PUBLISHED)
+  sortOrder  Int       @default(0)
+  services   Service[]
+}
+
+model Service {
+  id              Int      @id @default(autoincrement())
+  categoryId      Int
+  title           String   @db.VarChar(200) // "Statutory Audit"
+  slug            String   @unique @db.VarChar(220)
+  menuLabel       String?  @db.VarChar(200) // shorter label for the mega-menu/footer when it differs from title
+  description     String   @db.Text // card text on /services
+  body            String   @default("") // rich text for a future /services/<slug> page (optional)
+  showInMenu      Boolean  @default(true)
+  status          Status   @default(PUBLISHED)
+  sortOrder       Int      @default(0)
+  metaTitle       String?  @db.VarChar(200)
+  metaDescription String?  @db.VarChar(400)
+  ogImageId       Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  category ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  ogImage  Media?          @relation(fields: [ogImageId], references: [id], onDelete: NoAction)
+
+  @@index([categoryId])
+}
+
+// ---------------------------------------------------------------- learning centre (single source for Home Insights)
+
+model PostCategory {
+  id        Int    @id @default(autoincrement())
+  name      String @db.VarChar(100) // "GST Updates": filter tab
+  slug      String @unique @db.VarChar(120)
+  sortOrder Int    @default(0)
+  posts     Post[]
+}
+
+model Post {
+  id              Int       @id @default(autoincrement())
+  categoryId      Int
+  title           String    @db.VarChar(250)
+  slug            String    @unique @db.VarChar(270)
+  excerpt         String    @db.Text
+  body            String // rich text (HTML), sanitised on save and render
+  coverId         Int?
+  publishedAt     DateTime?
+  readMinutes     Int?
+  showOnHome      Boolean   @default(false) // Home "Latest from Our Experts" (newest 3, besides the featured one)
+  isFeatured      Boolean   @default(false) // the one large Home card (the API uses the newest featured post)
+  status          Status    @default(DRAFT)
+  sortOrder       Int       @default(0)
+  metaTitle       String?   @db.VarChar(200)
+  metaDescription String?   @db.VarChar(400) // falls back to excerpt
+  ogImageId       Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  category PostCategory @relation(fields: [categoryId], references: [id], onDelete: NoAction)
+  cover    Media?       @relation("PostCover", fields: [coverId], references: [id], onDelete: NoAction)
+  ogImage  Media?       @relation("PostOg", fields: [ogImageId], references: [id], onDelete: NoAction)
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+}
+
+// ---------------------------------------------------------------- careers
+
+model Department {
+  id        Int    @id @default(autoincrement())
+  name      String @db.VarChar(150) // filter-tab label
+  sortOrder Int    @default(0)
+  jobs      Job[]
+}
+
+model Job {
+  id              Int       @id @default(autoincrement())
+  departmentId    Int?
+  title           String    @db.VarChar(200)
+  slug            String    @unique @db.VarChar(220)
+  location        String    @db.VarChar(150)
+  employmentType  String    @db.VarChar(80) // Full-time, Part-time, Internship...
+  description     String // rich text
+  requirements    String    @default("") // rich text (optional)
+  salary          String?   @db.VarChar(100) // free text: "Stipend as per norms"
+  applyEmail      String?   @db.VarChar(200) // overrides SiteSettings.careersEmail
+  status          Status    @default(DRAFT) // PUBLISHED = active, DRAFT = inactive/hidden
+  postedAt        DateTime  @default(now())
+  closingDate     DateTime?
+  sortOrder       Int       @default(0)
+  metaTitle       String?   @db.VarChar(200)
+  metaDescription String?   @db.VarChar(400)
+  ogImageId       Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  department   Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  ogImage      Media?           @relation(fields: [ogImageId], references: [id], onDelete: NoAction)
+  applications JobApplication[]
+
+  @@index([status, postedAt])
+}
+
+// ---------------------------------------------------------------- inboxes
+
+model JobApplication {
+  id             Int      @id @default(autoincrement())
+  jobId          Int? // null = open application / job later deleted
+  jobTitle       String?  @db.VarChar(200) // snapshot, so it still reads well after the job is removed
+  name           String   @db.VarChar(150)
+  email          String   @db.VarChar(200)
+  phone          String?  @db.VarChar(50)
+  message        String?  @db.Text
+  cvFile         String   @db.VarChar(300) // file name inside PRIVATE_DIR (never served publicly)
+  cvOriginalName String   @db.VarChar(300)
+  cvMimeType     String   @db.VarChar(100)
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  job Job? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([isRead, createdAt])
+}
+
+// Contact page form + Book Consultation modal (one inbox, filter by type).
+model ContactMessage {
+  id            Int         @id @default(autoincrement())
+  type          MessageType
+  name          String      @db.VarChar(150)
+  email         String?     @db.VarChar(200) // consultation modal has no email
+  phone         String?     @db.VarChar(50)
+  service       String?     @db.VarChar(200) // the chosen "Service interested in" (text as chosen)
+  message       String?     @db.Text // contact form only
+  preferredTime String?     @db.VarChar(100) // consultation modal only
+  isRead        Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@index([type, isRead, createdAt])
+}
+
+// ---------------------------------------------------------------- admin
+
+model AdminUser {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique @db.VarChar(200)
+  name         String    @db.VarChar(150)
+  passwordHash String    @db.VarChar(200)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+}

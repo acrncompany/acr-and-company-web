@@ -1,0 +1,27 @@
+@use 'variables' as *;
+
+// CSS custom properties for the admin (/admin). Colours, shadows and the font that the admin shares with the website come from
+// _variables.scss, so there is one definition. The values below `Admin only` have no website equivalent, or differ from it
+// slightly (the admin was designed with these exact hex values), so they stay literal to keep the admin looking identical.
+@mixin admin-tokens {
+  --acr-navy: #{$navy};
+  --acr-gold-dark: #{$gold-dark};
+  --acr-surface: #{$surface};
+  --acr-foreground: #{$foreground};
+  --acr-muted: #{$muted};
+  --acr-white: #{$white};
+  --acr-shadow-sm: #{$shadow-sm};
+  --acr-shadow-md: #{$shadow-md};
+
+  // Admin only
+  --acr-navy-deep: #071a31;
+  --acr-gold: #c8a64b;
+  --acr-gold-tint: #f6efdc;
+  --acr-border: #e2e8f0;
+  --acr-link: #156cc2;
+  --acr-active: #eaeff7;
+  --acr-danger: #b3261e;
+  --acr-success: #15803d;
+  --acr-radius: 8px;
+  --acr-radius-lg: 14px;
+}

@@ -1,0 +1,43 @@
+// Design tokens extracted from the live site's CSS (HSL values as published in :root).
+// Sizes were read off the screenshots, which were taken at 125% browser zoom, then divided by 1.25.
+
+// Colours
+$navy: hsl(213, 73%, 15%);
+$navy-deep: hsl(213, 73%, 11%);
+$bright-blue: hsl(212, 80%, 42%);
+$gold: hsl(44, 53%, 54%);
+$gold-dark: hsl(44, 53%, 46%);
+$surface: hsl(216, 33%, 97%);
+$foreground: hsl(240, 28%, 14%);
+$muted: hsl(210, 15%, 42%);
+$border: hsl(214, 32%, 91%);
+$white: #fff;
+$whatsapp: #25d366;
+$flag-orange: #f97316;
+$flag-green: #15803d;
+
+// Typography
+$font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+// Layout
+$container-max: 1280px;
+$container-gutter: 32px;
+$container-gutter-sm: 16px;
+$header-height: 80px;
+$radius: 0.5rem;
+$radius-lg: 1rem;
+
+// Section rhythm
+$section-y: 96px;
+$section-y-sm: 64px;
+
+// Elevation
+$shadow-sm: 0 1px 3px rgba(10, 35, 66, 0.08);
+$shadow-md: 0 4px 16px rgba(10, 35, 66, 0.1);
+$shadow-lg: 0 20px 40px -12px rgba(10, 35, 66, 0.25);
+
+// Breakpoints (min-width, mobile first)
+$bp-sm: 640px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;

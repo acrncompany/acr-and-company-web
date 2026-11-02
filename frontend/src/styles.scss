@@ -1,0 +1,222 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// The website's global styles. They switch themselves off under /admin (AdminRoot puts .admin-area on <html>), so the admin theme
+// is not affected by them. :where() keeps their specificity exactly what it was, so nothing on the public pages changes.
+:where(html:not(.admin-area)) {
+  &,
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  & {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    font-family: $font-sans;
+    font-size: 16px;
+    line-height: 1.6;
+    color: $foreground;
+    background: $white;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  ul {
+    margin: 0;
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    @include focus-ring;
+  }
+
+  .container {
+    @include container;
+  }
+
+  // Shared button styles used by the header, hero and CTA band.
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .btn--gold {
+    color: $navy;
+    background: $gold;
+    box-shadow: $shadow-sm;
+
+    &:hover {
+      background: $gold-dark;
+    }
+  }
+
+  .btn--outline-light {
+    color: $white;
+    border-color: rgba(255, 255, 255, 0.5);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: $white;
+    }
+  }
+
+  // Scroll reveal (see shared/reveal/reveal.ts): starts hidden, then fades/slides in when it enters the viewport.
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.8s ease-out,
+      transform 0.8s ease-out;
+  }
+
+  .reveal--left {
+    transform: translateX(-72px);
+  }
+
+  .reveal--right {
+    transform: translateX(72px);
+  }
+
+  // Declared last so it wins over the direction offsets above.
+  .reveal--in {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    & {
+      scroll-behavior: auto;
+    }
+
+    &,
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+
+  // Honeypot field of the forms: out of sight and out of the tab order, but present for bots that fill in every input.
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  // Form fields shared by the Contact page and the consultation modal.
+  .field {
+    display: block;
+  }
+
+  .field__label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: $navy;
+  }
+
+  .field__control {
+    display: block;
+    width: 100%;
+    padding: 11px 14px;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    color: $foreground;
+    background: $white;
+    border: 1px solid $border;
+    border-radius: 8px;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+
+    &::placeholder {
+      color: hsl(210 12% 55%);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $bright-blue;
+      box-shadow: 0 0 0 3px hsl(212 80% 42% / 0.25);
+    }
+
+    &[aria-invalid='true'] {
+      border-color: #dc2626;
+    }
+  }
+
+  textarea.field__control {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  select.field__control {
+    appearance: none;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b6b7b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  .field__error {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #dc2626;
+  }
+
+  .form-status {
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: $flag-green;
+    background: hsl(142 60% 95%);
+    border-radius: 8px;
+  }
+}

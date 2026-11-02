@@ -1,0 +1,47 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.floating {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+
+  @include up($bp-md) {
+    right: 32px;
+    bottom: 24px;
+  }
+}
+
+.floating__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  color: $white;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: $shadow-lg;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &--chat {
+    background: $whatsapp;
+  }
+
+  &--top {
+    width: 48px;
+    height: 48px;
+    background: $navy;
+  }
+}

@@ -1,0 +1,117 @@
+@use '@angular/material' as mat;
+@use 'admin-tokens' as *;
+@use 'variables' as v;
+@use '@fontsource/material-icons/index.css';
+
+/*
+ * Admin theme = the website's design tokens (styles/_variables.scss, via styles/_admin-tokens.scss): navy + gold, Plus Jakarta Sans.
+ * Angular Material supplies the behaviour (menus, dialogs, form fields); the colours below replace its defaults.
+ * This file belongs to AdminRoot, so it is only loaded under /admin.
+ */
+:root {
+  @include admin-tokens;
+}
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: mat.$azure-palette,
+    typography: 'Plus Jakarta Sans',
+    density: 0,
+  ));
+
+  /* Replace Material's default (purple/blue) palette with the website's colours. */
+  --mat-sys-primary: var(--acr-navy);
+  --mat-sys-on-primary: #fff;
+  --mat-sys-primary-container: #dbe5f3;
+  --mat-sys-on-primary-container: var(--acr-navy);
+  --mat-sys-secondary: var(--acr-gold-dark);
+  --mat-sys-on-secondary: #fff;
+  --mat-sys-secondary-container: var(--acr-gold-tint);
+  --mat-sys-on-secondary-container: #4a3a10;
+  --mat-sys-tertiary: var(--acr-gold-dark);
+  --mat-sys-on-tertiary: #fff;
+  --mat-sys-tertiary-container: var(--acr-gold-tint);
+  --mat-sys-on-tertiary-container: #4a3a10;
+  --mat-sys-background: var(--acr-surface);
+  --mat-sys-on-background: var(--acr-foreground);
+  --mat-sys-surface: #fff;
+  --mat-sys-surface-dim: #e9edf2;
+  --mat-sys-surface-bright: #fff;
+  --mat-sys-surface-container-lowest: #fff;
+  --mat-sys-surface-container-low: var(--acr-surface);
+  --mat-sys-surface-container: #eef2f7;
+  --mat-sys-surface-container-high: #e8edf4;
+  --mat-sys-surface-container-highest: #e2e8f0;
+  --mat-sys-on-surface: var(--acr-foreground);
+  --mat-sys-on-surface-variant: var(--acr-muted);
+  --mat-sys-outline: #8fa0b5;
+  --mat-sys-outline-variant: var(--acr-border);
+  --mat-sys-surface-tint: var(--acr-navy);
+  --mat-sys-error: var(--acr-danger);
+
+  /* Same corner radius as the website. */
+  --mat-button-filled-container-shape: var(--acr-radius);
+  --mat-button-outlined-container-shape: var(--acr-radius);
+  --mat-button-text-container-shape: var(--acr-radius);
+  --mat-card-outlined-container-shape: var(--acr-radius-lg);
+  --mat-card-outlined-outline-color: var(--acr-border);
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: v.$font-sans;
+  background: var(--acr-surface);
+  color: var(--acr-foreground);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* The main action button looks like the website's gold button: gold with navy text. */
+.mat-mdc-unelevated-button:not(.danger-button) {
+  --mat-button-filled-container-color: var(--acr-gold);
+  --mat-button-filled-label-text-color: var(--acr-navy);
+  --mat-button-filled-disabled-container-color: #e5e0cf;
+  font-weight: 600;
+}
+.mat-mdc-outlined-button { --mat-button-outlined-label-text-color: var(--acr-navy); --mat-button-outlined-outline-color: #c3cddb; }
+.mat-mdc-button:not(.mat-mdc-button-disabled) { --mat-button-text-label-text-color: var(--acr-navy); }
+
+/* Comfortable tap targets on tablets and phones */
+@media (max-width: 900px) {
+  .mat-mdc-button, .mat-mdc-outlined-button, .mat-mdc-unelevated-button { min-height: 44px; }
+  .mat-mdc-form-field { font-size: 16px; } /* 16px stops iOS from zooming into inputs */
+}
+
+/* Messages */
+.snack-success { --mat-snack-bar-button-color: #fff; --mdc-snackbar-container-color: var(--acr-success); --mdc-snackbar-supporting-text-color: #fff; --mat-snack-bar-container-color: var(--acr-success); --mat-snack-bar-supporting-text-color: #fff; }
+.snack-error { --mat-snack-bar-button-color: #fff; --mdc-snackbar-container-color: var(--acr-danger); --mdc-snackbar-supporting-text-color: #fff; --mat-snack-bar-container-color: var(--acr-danger); --mat-snack-bar-supporting-text-color: #fff; }
+
+/* Red confirm button for deleting */
+.danger-button { --mdc-filled-button-container-color: var(--acr-danger); --mat-button-filled-container-color: var(--acr-danger); --mdc-filled-button-label-text-color: #fff; --mat-button-filled-label-text-color: #fff; }
+
+a { color: var(--acr-link); }
+
+/* @fontsource only ships the @font-face; this is the standard rule that turns icon names (ligatures) into glyphs. */
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Breathing room between stacked form fields (hint text of one field vs. label of the next) */
+app-field .mat-mdc-form-field,
+app-seo-panel .mat-mdc-form-field { margin-bottom: 10px; }
+
+h1, h2, h3 { color: var(--acr-navy); }

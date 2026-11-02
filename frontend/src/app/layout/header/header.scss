@@ -1,0 +1,314 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.header {
+  position: relative;
+  background: $white;
+  border-bottom: 4px solid transparent;
+  // Tricolour strip (saffron / white / green) shown at the top of the page, replaced by a shadow on scroll.
+  border-image: linear-gradient(to right, $flag-orange 33.33%, $white 33.33% 66.66%, $flag-green 66.66%) 1;
+  transition: box-shadow 0.2s;
+
+  &--scrolled {
+    border-image: none;
+    border-bottom: 1px solid $border;
+    box-shadow: $shadow-md;
+  }
+}
+
+.header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: $header-height;
+}
+
+// Brand
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.brand__mark {
+  width: 72px;
+  height: auto;
+
+  @include down($bp-sm) {
+    width: 56px;
+  }
+}
+
+.brand__divider {
+  width: 1px;
+  height: 36px;
+  background: $border;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand__name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $navy;
+
+  @include down($bp-sm) {
+    font-size: 14px;
+  }
+}
+
+.brand__tag {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $muted;
+
+  @include down($bp-sm) {
+    font-size: 8px;
+  }
+}
+
+// Desktop nav
+.nav {
+  display: none;
+  align-items: center;
+  flex: 1;
+  justify-content: space-between;
+  margin-left: 12px;
+
+  @include up($bp-lg) {
+    display: flex;
+  }
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+}
+
+.nav__item {
+  display: flex;
+  align-items: center;
+}
+
+.nav__link {
+  padding: 8px 4px 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: $navy;
+  transition: color 0.2s;
+
+  &:hover,
+  &.is-open {
+    color: $gold-dark;
+  }
+
+  &.is-active {
+    color: $gold;
+  }
+}
+
+// Items without a chevron need symmetrical padding.
+.nav__item:not(:has(.nav__toggle)) .nav__link {
+  padding-right: 18px;
+}
+
+.nav__toggle {
+  display: inline-flex;
+  padding: 8px 14px 8px 0;
+  color: $navy;
+  background: none;
+  border: 0;
+}
+
+.nav__cta {
+  padding: 10px 12px;
+  font-size: 14px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// Mega menu
+.mega {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  max-height: calc(100vh - #{$header-height});
+  overflow-y: auto;
+  background: $white;
+  border-top: 1px solid $border;
+  box-shadow: $shadow-lg;
+}
+
+.mega__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 24px;
+  padding-block: 28px 36px;
+}
+
+.mega__title {
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: $navy;
+  border-bottom: 2px solid hsl(44, 53%, 90%);
+}
+
+.mega__link {
+  position: relative;
+  display: block;
+  padding: 3px 0 3px 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: $muted;
+  transition:
+    color 0.2s,
+    padding-left 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    padding-left: 19px;
+    color: $gold-dark;
+  }
+  &:hover .mega__chevron,
+  &:focus-visible .mega__chevron {
+    opacity: 1;
+  }
+}
+
+.mega__chevron {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.2s;
+}
+
+// Burger + mobile drawer
+.burger {
+  display: inline-flex;
+  padding: 8px;
+  color: $navy;
+  background: none;
+  border: 0;
+
+  @include up($bp-lg) {
+    display: none;
+  }
+}
+
+.mobile {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  max-height: calc(100vh - #{$header-height});
+  padding: 8px $container-gutter-sm 24px;
+  overflow-y: auto;
+  background: $white;
+  border-top: 1px solid $border;
+  box-shadow: $shadow-lg;
+
+  @include up($bp-lg) {
+    display: none;
+  }
+}
+
+.mobile__item {
+  border-bottom: 1px solid $border;
+}
+
+.mobile__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 4px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: $navy;
+
+  &.is-active {
+    color: $gold;
+  }
+
+  &--button {
+    text-align: left;
+    background: none;
+    border: 0;
+  }
+}
+
+.mobile__sub {
+  padding: 0 0 12px 12px;
+}
+
+.mobile__cat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: $navy;
+  text-align: left;
+  background: none;
+  border: 0;
+}
+
+.mobile__links {
+  padding: 0 0 8px 12px;
+
+  a {
+    display: block;
+    padding: 6px 4px;
+    font-size: 14px;
+    color: $muted;
+  }
+}
+
+.mobile__cta {
+  display: flex;
+  width: 100%;
+  margin-top: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+// Between desktop and wide, keep the nav on one line.
+@media (min-width: $bp-lg) and (max-width: 1180px) {
+  .nav__link {
+    padding-left: 10px;
+    font-size: 13px;
+  }
+
+  .nav__item:not(:has(.nav__toggle)) .nav__link {
+    padding-right: 10px;
+  }
+
+  .mega__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
