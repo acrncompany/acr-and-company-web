@@ -21,6 +21,7 @@ import { PerksSection } from './sections/perks-section';
         [allLabel]="c.allLabel"
         [applyLabel]="c.applyLabel"
         [detailsLabel]="c.detailsLabel"
+        [apply]="c.apply"
       />
       <app-careers-contact-section [contact]="c.contact" />
     }

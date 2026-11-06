@@ -92,10 +92,7 @@ export class PublicService {
 
   async site() {
     const s = await this.settings();
-    const [quickLinks, social] = await Promise.all([
-      this.prisma.menuItem.findMany({ where: { location: 'FOOTER', visible: true }, orderBy: bySort }),
-      this.prisma.socialLink.findMany({ where: { visible: true }, orderBy: bySort }),
-    ]);
+    const quickLinks = await this.prisma.menuItem.findMany({ where: { location: 'FOOTER', visible: true }, orderBy: bySort });
     return {
       name: s.brandName,
       tagline: s.tagline,
@@ -120,8 +117,16 @@ export class PublicService {
         copyright: s.footerCopyright,
         tagline: lines(s.footerTaglines),
       },
-      socialLinks: social.map((l) => ({ platform: l.platform, url: l.url })),
+      socialLinks: this.socialLinks(s).map((l) => ({ platform: l.platform, url: l.url || '#' })),
     };
+  }
+
+  private socialLinks(s: { facebookUrl: string; instagramUrl: string; linkedinUrl: string }) {
+    return [
+      { platform: 'facebook', url: s.facebookUrl },
+      { platform: 'instagram', url: s.instagramUrl },
+      { platform: 'linkedin', url: s.linkedinUrl },
+    ];
   }
 
   /** Header menu + the Services mega-menu (built from the services, so there is one source). */
@@ -147,7 +152,7 @@ export class PublicService {
   // ---------------------------------------------------------------- SEO
 
   async seoSite() {
-    const [s, social] = await Promise.all([this.settings(), this.prisma.socialLink.findMany({ where: { visible: true }, orderBy: bySort })]);
+    const s = await this.settings();
     return {
       siteName: s.siteName,
       titleSuffix: s.titleSuffix,
@@ -160,7 +165,7 @@ export class PublicService {
       organization: {
         addressStreet: s.orgStreet, addressLocality: s.orgLocality, addressRegion: s.orgRegion,
         addressPostalCode: s.orgPostalCode, addressCountry: s.orgCountryCode,
-        sameAs: social.map((l) => l.url),
+        sameAs: this.socialLinks(s).map((l) => l.url).filter(Boolean),
       },
     };
   }
@@ -249,6 +254,10 @@ export class PublicService {
         secondaryCta: b.link('hero.secondary_cta_label', 'hero.secondary_cta_url'),
         stats: stats.map((s) => ({ value: s.value, label: s.label })),
         background: b.image('hero.background'),
+        backgroundOpacity: (() => {
+          const n = parseInt(b.text('hero.background_opacity'), 10);
+          return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 100;
+        })(),
       },
       coreServices: {
         heading: b.heading('core_services'),
@@ -318,7 +327,7 @@ export class PublicService {
         items: c.services.map((x) => ({ title: x.title, slug: x.slug, description: x.description })),
       })),
       cta: {
-        title: b.text('cta.title'), text: b.text('cta.text'), buttonLabel: b.text('cta.button_label'), path: b.text('cta.button_url'),
+        title: b.text('cta.title'), text: b.text('cta.text'), buttonLabel: b.text('cta.button_label'),
       },
     };
   }
@@ -442,7 +451,8 @@ export class PublicService {
       hoursTitle: b.text('hours_title'),
       hours: lines(s.businessHours).map((text) => ({ icon: 'clock', text })),
       map: { query: s.mapQuery, title: b.text('map.title'), openLabel: b.text('map.open_label') },
-      services: categories.map((x) => x.title),
+      // The "Service interested in" choices: edited in the admin (one per line); empty = the service group names.
+      services: lines(b.text('form.service_options')).length ? lines(b.text('form.service_options')) : categories.map((x) => x.title),
       consultation: {
         title: c.text('title'), subtitle: c.text('subtitle'), submitLabel: c.text('submit_label'),
         sendingLabel: c.text('sending_label'), successMessage: c.text('success_message'), closeLabel: c.text('close_label'),

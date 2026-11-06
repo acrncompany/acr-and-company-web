@@ -4,19 +4,17 @@ import { ApplyFormContent } from '../../../core/models/careers';
 import { CareersService } from '../../../core/services/careers.service';
 import { FormFailure, formFailure } from '../../../core/utils/form-error';
 
-/** The CV rules, same as the server's (the server checks again: it never trusts this). */
-const CV_EXTENSIONS = ['.pdf', '.doc', '.docx'];
-const CV_MAX_BYTES = 5 * 1024 * 1024;
-
-/** "Apply for this position" form on /careers/:slug, with the CV upload. */
+/** "Apply for this position" form (in the modal on /careers and on /careers/:slug). */
 @Component({
   selector: 'app-job-application-form',
   imports: [ReactiveFormsModule],
   template: `
     @let a = content();
-    <section class="apply" id="apply" aria-labelledby="apply-title">
-      <h2 class="apply__title" id="apply-title">{{ a.title }}</h2>
-      <p class="apply__subtitle">{{ a.subtitle }}</p>
+    <section class="apply" [class.apply--embedded]="embedded()" [attr.id]="embedded() ? null : 'apply'" aria-labelledby="apply-title">
+      @if (!embedded()) {
+        <h2 class="apply__title" id="apply-title">{{ a.title }}</h2>
+        <p class="apply__subtitle">{{ a.subtitle }}</p>
+      }
 
       @if (sent()) {
         <p class="form-status" role="status">{{ a.successMessage }}</p>
@@ -70,31 +68,14 @@ const CV_MAX_BYTES = 5 * 1024 * 1024;
             }
           </div>
 
-          <div class="field">
-            <label class="field__label" for="a-cv">CV</label>
-            <input
-              class="field__control"
-              id="a-cv"
-              type="file"
-              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              (change)="onFile($event)"
-              [attr.aria-invalid]="cvProblem() ? true : null"
-              aria-describedby="a-cv-hint"
-            />
-            <p class="hint" id="a-cv-hint">{{ a.cvHint }}</p>
-            @if (cvProblem()) {
-              <p class="field__error" role="alert">{{ a.cvErrorMessage }}</p>
-            }
-          </div>
-
           <div class="field field--wide">
-            <label class="field__label" for="a-message">Message (optional)</label>
+            <label class="field__label" for="a-message">Cover Note</label>
             <textarea
               class="field__control"
               id="a-message"
               rows="4"
               formControlName="message"
-              placeholder="Anything you would like us to know..."
+              placeholder="Tell us why you'd be a great fit..."
             ></textarea>
           </div>
 
@@ -124,6 +105,17 @@ const CV_MAX_BYTES = 5 * 1024 * 1024;
       padding-top: 32px;
       border-top: 1px solid $border;
       scroll-margin-top: calc($header-height + 16px);
+    }
+    .apply--embedded {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+
+      .form {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        margin-top: 0;
+      }
     }
     .apply__title {
       font-size: 24px;
@@ -174,14 +166,14 @@ export class JobApplicationForm {
   readonly content = input.required<ApplyFormContent>();
   /** The position being applied for (the last part of /careers/<slug>). */
   readonly jobSlug = input.required<string>();
+  /** True inside the modal: no heading, no top border, single column. */
+  readonly embedded = input(false);
 
   private readonly careers = inject(CareersService);
 
   protected readonly sending = signal(false);
   protected readonly sent = signal(false);
   protected readonly failure = signal<FormFailure | null>(null);
-  protected readonly cvProblem = signal(false);
-  private cv: File | null = null;
 
   protected readonly application = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
@@ -200,8 +192,6 @@ export class JobApplicationForm {
     switch (why) {
       case 'too_many':
         return a.tooManyMessage;
-      case 'cv':
-        return a.cvErrorMessage;
       case 'closed':
         return a.closedMessage;
       default:
@@ -209,18 +199,9 @@ export class JobApplicationForm {
     }
   }
 
-  protected onFile(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    const name = file?.name.toLowerCase() ?? '';
-    const fine = !!file && file.size > 0 && file.size <= CV_MAX_BYTES && CV_EXTENSIONS.some((ext) => name.endsWith(ext));
-    this.cv = fine ? file : null;
-    this.cvProblem.set(!!file && !fine);
-  }
-
   protected submit(): void {
     this.failure.set(null);
-    if (!this.cv) this.cvProblem.set(true);
-    if (this.application.invalid || !this.cv) {
+    if (this.application.invalid) {
       this.application.markAllAsTouched();
       return;
     }
@@ -232,7 +213,6 @@ export class JobApplicationForm {
     body.append('phone', v.phone);
     body.append('message', v.message);
     body.append('website', v.website);
-    body.append('cv', this.cv, this.cv.name);
 
     this.sending.set(true);
     this.careers.apply(body).subscribe({

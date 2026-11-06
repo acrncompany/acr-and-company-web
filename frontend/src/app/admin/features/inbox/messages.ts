@@ -54,6 +54,7 @@ type TypeFilter = '' | 'CONTACT' | 'CONSULTATION';
                 <dt>Name</dt><dd>{{ m.name }}</dd>
                 @if (m.email) { <dt>Email</dt><dd><a [href]="'mailto:' + m.email">{{ m.email }}</a></dd> }
                 @if (m.phone) { <dt>Phone</dt><dd><a [href]="'tel:' + m.phone">{{ m.phone }}</a></dd> }
+                @if (m.company) { <dt>Company</dt><dd>{{ m.company }}</dd> }
                 @if (m.service) { <dt>Service</dt><dd>{{ m.service }}</dd> }
                 @if (m.preferredTime) { <dt>Preferred time</dt><dd>{{ m.preferredTime }}</dd> }
                 @if (m.message) { <dt>Message</dt><dd class="msg">{{ m.message }}</dd> }

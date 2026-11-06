@@ -33,14 +33,7 @@ class SeoFields {
   @MediaRef() ogImageId?: number;
 }
 
-// ---- menus, social
-export class SocialLinkDto {
-  @Required(50) platform: string;
-  @IsString() @MaxLength(500) @Matches(/^https?:\/\//, { message: 'url must start with http:// or https://' }) url: string;
-  @OptionalBool() visible?: boolean;
-  @OptionalInt() sortOrder?: number;
-}
-export class UpdateSocialLinkDto extends PartialType(SocialLinkDto) {}
+// ---- menus
 
 export class MenuItemDto {
   @IsEnum(MenuLocation) location: MenuLocation;
@@ -229,6 +222,9 @@ export class UpdateSettingsDto {
   @IsOptional() @Required(2000) footerAbout?: string;
   @IsOptional() @Required(300) footerCopyright?: string;
   @IsOptional() @Required(500) footerTaglines?: string;
+  @IsOptional() @Trim() @IsString() @MaxLength(500) @Matches(/^(https?:\/\/\S+)?$/, { message: 'must be a full address starting with https://, or empty' }) facebookUrl?: string;
+  @IsOptional() @Trim() @IsString() @MaxLength(500) @Matches(/^(https?:\/\/\S+)?$/, { message: 'must be a full address starting with https://, or empty' }) instagramUrl?: string;
+  @IsOptional() @Trim() @IsString() @MaxLength(500) @Matches(/^(https?:\/\/\S+)?$/, { message: 'must be a full address starting with https://, or empty' }) linkedinUrl?: string;
 
   @IsOptional() @Required(200) titleSuffix?: string;
   @IsOptional() @Required(400) defaultMetaDescription?: string;

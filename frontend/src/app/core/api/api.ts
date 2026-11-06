@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, InjectionToken, inject } from '@angular/core';
-import { EMPTY, Observable, catchError, map, of } from 'rxjs';
+import { EMPTY, Observable, catchError, map, of, shareReplay } from 'rxjs';
 
 /**
  * Origin of the NestJS API (no trailing slash).
@@ -22,23 +22,39 @@ export class ApiService {
 
   /** GET /api/public/<path>. If the API is unreachable the observable completes without a value (the page stays empty). */
   get<T>(path: string): Observable<T> {
-    return this.http.get<T>(`${this.base}/api/public/${path}`).pipe(
+    const hit = this.cache.get(path);
+    if (hit) return hit as Observable<T>;
+    const request$ = this.http.get<T>(`${this.base}/api/public/${path}`).pipe(
       catchError((err: HttpErrorResponse) => {
         console.error(`[api] GET ${path} failed (${err.status})`);
+        this.cache.delete(path); // don't keep a failed request
         return EMPTY;
       }),
+      shareReplay(1),
     );
+    this.cache.set(path, request$);
+    return request$;
   }
+
+  /** Responses kept for the session, so a route resolver can load a page's data before navigation and the page then renders at once. */
+  private readonly cache = new Map<string, Observable<unknown>>();
 
   /** Like get(), but a 404 yields null (an unknown article or job), so the page can show "not found". */
   getOrNull<T>(path: string): Observable<T | null> {
-    return this.http.get<T>(`${this.base}/api/public/${path}`).pipe(
+    const key = `null:${path}`;
+    const hit = this.cache.get(key);
+    if (hit) return hit as Observable<T | null>;
+    const request$ = this.http.get<T>(`${this.base}/api/public/${path}`).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 404) return of(null);
         console.error(`[api] GET ${path} failed (${err.status})`);
+        this.cache.delete(key);
         return EMPTY;
       }),
+      shareReplay(1),
     );
+    this.cache.set(key, request$);
+    return request$;
   }
 
   /** POST /api/public/forms/<form> (contact, consultation, application). Errors are passed on: each form decides what to tell the visitor. */

@@ -7,7 +7,7 @@
 
 export type FieldType =
   | 'text' | 'textarea' | 'richtext' | 'number' | 'bool' | 'select' | 'status'
-  | 'image' | 'icon' | 'link' | 'email' | 'datetime' | 'color';
+  | 'image' | 'icon' | 'link' | 'email' | 'datetime' | 'color' | 'lines';
 
 export interface FieldDef {
   key: string;
@@ -63,7 +63,7 @@ export interface ResourceConfig {
   fixed?: Record<string, string>;
   /** Defaults for new items. */
   defaults?: Record<string, any>;
-  seo?: { kind: 'service' | 'post' | 'job'; titleKey: string; textKey: string };
+  seo?: { kind: 'service' | 'post' | 'job'; titleKey: string; textKey: string; hidePanel?: boolean };
   list: ListDef;
   /** Single record without a list (site settings). */
   singleton?: boolean;
@@ -159,21 +159,21 @@ const REGISTRY: ResourceConfig[] = [
   {
     key: 'jobs', endpoint: '/jobs', title: 'Job openings', singular: 'job', basePath: '/careers',
     help: 'Open positions shown on the Careers page. Each one also gets its own page. Hidden jobs and jobs past their closing date are not shown.',
-    seo: { kind: 'job', titleKey: 'title', textKey: 'description' },
+    seo: { kind: 'job', titleKey: 'title', textKey: 'description', hidePanel: true },
     links: [{ label: 'Departments', path: '/careers/departments', icon: 'account_tree' }],
     defaults: { status: 'PUBLISHED', employmentType: 'Full-time' },
     fields: [
-      { key: 'title', label: 'Job title', type: 'text', required: true, max: 200, hint: 'For example "Accounts Executive".' },
-      { key: 'departmentId', label: 'Department', type: 'select', optionsFrom: 'departments', hint: 'Used for the filter tabs on the Careers page. Manage the list under "Departments".' },
+      { key: 'title', label: 'Job title', type: 'text', required: true, max: 200 },
+      { key: 'departmentId', label: 'Department', type: 'select', optionsFrom: 'departments' },
       { key: 'location', label: 'Location', type: 'text', required: true, max: 150, placeholder: 'Calicut, Cochin, Bangalore' },
-      { key: 'employmentType', label: 'Type of job', type: 'text', required: true, max: 80, placeholder: 'Full-time', hint: 'For example Full-time, Part-time, Internship.' },
-      { key: 'description', label: 'About the role', type: 'richtext', hint: 'What the job is. The first lines also appear on the Careers page card.' },
-      { key: 'requirements', label: 'Requirements', type: 'richtext', hint: 'Optional. Qualifications and skills needed. Shown on the job page.' },
-      { key: 'salary', label: 'Salary or stipend', type: 'text', max: 100, hint: 'Optional, shown as typed. For example "Stipend as per norms".' },
-      { key: 'applyEmail', label: 'Send applications to', type: 'email', max: 200, hint: 'Optional. If empty, applications go to the careers email in Settings.' },
-      { key: 'postedAt', label: 'Posted on', type: 'datetime', hint: 'Shown as "Posted: 15 Jan 2026". Leave empty to use now.' },
-      { key: 'closingDate', label: 'Closing date', type: 'datetime', clearable: true, hint: 'Optional. After this day the job disappears from the website.' },
-      status('Only "Visible" jobs appear on the website. Use "Hidden" for a filled position.'),
+      { key: 'employmentType', label: 'Type of job', type: 'text', required: true, max: 80, placeholder: 'Full-time' },
+      { key: 'description', label: 'About the role', type: 'richtext' },
+      { key: 'requirements', label: 'Requirements', type: 'richtext' },
+      { key: 'salary', label: 'Salary or stipend', type: 'text', max: 100 },
+      { key: 'applyEmail', label: 'Send applications to', type: 'email', max: 200 },
+      { key: 'postedAt', label: 'Posted on', type: 'datetime' },
+      { key: 'closingDate', label: 'Closing date', type: 'datetime', clearable: true },
+      { ...status(), hint: undefined },
     ],
     list: {
       primary: (r) => r.title, secondary: (r) => `${r.department?.name ?? 'No department'} · ${r.location} · ${r.employmentType}`,
@@ -189,11 +189,11 @@ const REGISTRY: ResourceConfig[] = [
   },
 
   // ------------------------------------------------------------------ lists inside the pages
-  statsConfig('home-stats', 'HOME_HERO', 'Home page numbers', '/lists/home-stats', '/pages/home', 'Home page', 'The numbers shown under the big heading at the top of the home page (for example "20+ Years of Excellence").'),
-  featureConfig('why', 'HOME_WHY_CHOOSE', 'Why choose us', '/lists/why', '/pages/home', 'Home page', 'The boxes under "Why Choose ACR & Company" on the home page.'),
-  featureConfig('approach', 'HOME_APPROACH', 'How we work with you', '/lists/approach', '/pages/home', 'Home page', 'The steps under "How We Work With You" on the home page.'),
+  statsConfig('home-stats', 'HOME_HERO', 'Home page numbers', '/lists/home-stats', '/home', 'Home page', 'The numbers shown under the big heading at the top of the home page (for example "20+ Years of Excellence").'),
+  featureConfig('why', 'HOME_WHY_CHOOSE', 'Why choose us', '/lists/why', '/home', 'Home page', 'The boxes under "Why Choose ACR & Company" on the home page.'),
+  featureConfig('approach', 'HOME_APPROACH', 'How we work with you', '/lists/approach', '/home', 'Home page', 'The steps under "How We Work With You" on the home page.'),
   {
-    key: 'industries', endpoint: '/industries', title: 'Industries we serve', singular: 'industry', basePath: '/lists/industries', backPath: '/pages/home', backLabel: 'Home page',
+    key: 'industries', endpoint: '/industries', title: 'Industries we serve', singular: 'industry', basePath: '/lists/industries', backPath: '/home', backLabel: 'Home page',
     help: 'The coloured tiles under "Industries We Serve" on the home page.',
     defaults: { status: 'PUBLISHED', tone: 'BLUE', icon: 'building' },
     fields: [
@@ -208,7 +208,7 @@ const REGISTRY: ResourceConfig[] = [
     list: { primary: (r) => r.label, secondary: (r) => r.tone[0] + r.tone.slice(1).toLowerCase(), icon: (r) => r.icon, sortable: true, hasStatus: true, emptyText: 'No industries yet.' },
   },
   {
-    key: 'faqs', endpoint: '/faqs', title: 'Frequently asked questions', singular: 'question', basePath: '/lists/faqs', backPath: '/pages/home', backLabel: 'Home page',
+    key: 'faqs', endpoint: '/faqs', title: 'Frequently asked questions', singular: 'question', basePath: '/lists/faqs', backPath: '/home', backLabel: 'Home page',
     help: 'The questions and answers on the home page. Drag to change the order.',
     fixed: { pageKey: 'home' }, defaults: { status: 'PUBLISHED' },
     fields: [
@@ -218,17 +218,17 @@ const REGISTRY: ResourceConfig[] = [
     ],
     list: { primary: (r) => r.question, secondary: (r) => r.answer, sortable: true, hasStatus: true, emptyText: 'No questions yet.' },
   },
-  statsConfig('about-stats', 'ABOUT_STORY', 'About page numbers', '/lists/about-stats', '/pages/about', 'About page', 'The numbers next to our story on the About page (for example "2000+ Clients").'),
-  featureConfig('values', 'ABOUT_VALUE', 'Core values', '/lists/values', '/pages/about', 'About page', 'The boxes under "Our Core Values" on the About page.'),
+  statsConfig('about-stats', 'ABOUT_STORY', 'About page numbers', '/lists/about-stats', '/about', 'About page', 'The numbers next to our story on the About page (for example "2000+ Clients").'),
+  featureConfig('values', 'ABOUT_VALUE', 'Core values', '/lists/values', '/about', 'About page', 'The boxes under "Our Core Values" on the About page.'),
   {
-    key: 'locations', endpoint: '/locations', title: 'Network cities', singular: 'city', basePath: '/lists/locations', backPath: '/pages/about', backLabel: 'About page',
+    key: 'locations', endpoint: '/locations', title: 'Network cities', singular: 'city', basePath: '/lists/locations', backPath: '/about', backLabel: 'About page',
     help: 'The cities shown under "Pan-India & Middle East Presence" on the About page.',
     defaults: { status: 'PUBLISHED' },
     fields: [{ key: 'name', label: 'City name', type: 'text', required: true, max: 100, hint: 'For example "Dubai".' }, status()],
     list: { primary: (r) => r.name, sortable: true, hasStatus: true, emptyText: 'No cities yet.' },
   },
   {
-    key: 'team', endpoint: '/team-members', title: 'Founder / leadership', singular: 'person', basePath: '/lists/team', backPath: '/pages/about', backLabel: 'About page',
+    key: 'team', endpoint: '/team-members', title: 'Founder / leadership', singular: 'person', basePath: '/lists/team', backPath: '/about', backLabel: 'About page',
     help: 'The person shown under "Meet Our Founder" on the About page. The page shows the first visible person.',
     defaults: { status: 'PUBLISHED', fallbackIcon: 'graduation-cap' },
     fields: [
@@ -242,19 +242,18 @@ const REGISTRY: ResourceConfig[] = [
     ],
     list: { primary: (r) => r.name, secondary: (r) => r.role, thumb: (r) => r.photo?.path, icon: (r) => r.fallbackIcon, sortable: true, hasStatus: true, emptyText: 'No people yet.' },
   },
-  featureConfig('perks', 'CAREER_PERK', 'Why work with us', '/lists/perks', '/pages/careers', 'Careers page', 'The boxes under "Why Work With Us" on the Careers page.'),
+  featureConfig('perks', 'CAREER_PERK', 'Why work with us', '/lists/perks', '/careers/page', 'Careers page', 'The boxes under "Why Work With Us" on the Careers page.'),
 
   // ------------------------------------------------------------------ settings area
   {
-    key: 'social', endpoint: '/social-links', title: 'Social media links', singular: 'link', basePath: '/settings/social', backPath: '/settings', backLabel: 'Settings',
-    help: 'Links to your social media pages. They are also given to Google as official profiles of the business.',
-    defaults: { visible: true, platform: 'linkedin' },
+    key: 'social', endpoint: '/settings', title: 'Social media links', singular: 'settings', basePath: '/settings/social', backPath: '/settings', backLabel: 'Settings', singleton: true,
+    help: 'Links to your social media pages. They show as icons in the website footer and are also given to Google as official profiles of the business. Leave a box empty to hide that icon.',
     fields: [
-      { key: 'platform', label: 'Network', type: 'select', required: true, options: ['facebook', 'instagram', 'linkedin', 'twitter', 'youtube'].map((p) => ({ value: p, label: p[0].toUpperCase() + p.slice(1) })) },
-      { key: 'url', label: 'Page address', type: 'text', required: true, max: 500, placeholder: 'https://www.linkedin.com/company/...', hint: 'The full address, starting with https://' },
-      { key: 'visible', label: 'Use this link', type: 'bool', hint: 'Switch off to keep it saved without using it.' },
+      { key: 'facebookUrl', label: 'Facebook page address', type: 'text', max: 500, placeholder: 'https://www.facebook.com/...', hint: 'The full address, starting with https://' },
+      { key: 'instagramUrl', label: 'Instagram page address', type: 'text', max: 500, placeholder: 'https://www.instagram.com/...', hint: 'The full address, starting with https://' },
+      { key: 'linkedinUrl', label: 'LinkedIn page address', type: 'text', max: 500, placeholder: 'https://www.linkedin.com/company/...', hint: 'The full address, starting with https://' },
     ],
-    list: { primary: (r) => r.platform, secondary: (r) => r.url, sortable: true, emptyText: 'No social links yet.' },
+    list: { primary: (r) => r.facebookUrl, emptyText: '' },
   },
   menuConfig('menu-header', 'HEADER', 'Top menu', '/settings/menu-header'),
   menuConfig('menu-footer', 'FOOTER', 'Footer links', '/settings/menu-footer'),
@@ -364,15 +363,7 @@ export const resourceKeys = REGISTRY.map((r) => r.key);
 
 /** Links from each fixed page's editor to the lists that belong to that page. */
 export const PAGE_LISTS: Record<string, { label: string; path: string; icon: string }[]> = {
-  home: [
-    { label: 'Numbers under the heading', path: '/lists/home-stats', icon: 'pin' },
-    { label: 'Service cards (groups)', path: '/services/groups', icon: 'handyman' },
-    { label: 'Why choose us', path: '/lists/why', icon: 'thumb_up' },
-    { label: 'How we work with you', path: '/lists/approach', icon: 'timeline' },
-    { label: 'Industries we serve', path: '/lists/industries', icon: 'factory' },
-    { label: 'Latest articles', path: '/learning', icon: 'article' },
-    { label: 'Questions and answers', path: '/lists/faqs', icon: 'help' },
-  ],
+  home: [],
   about: [
     { label: 'Numbers', path: '/lists/about-stats', icon: 'pin' },
     { label: 'Founder', path: '/lists/team', icon: 'person' },

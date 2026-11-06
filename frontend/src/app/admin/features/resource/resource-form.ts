@@ -68,7 +68,9 @@ function toLocalInput(iso: string | null | undefined): string {
         }
 
         @if (config.seo; as seo) {
+         @if (!seo.hidePanel) {
           <app-seo-panel [form]="f" [kind]="seo.kind" [titleKey]="seo.titleKey" [textKey]="seo.textKey" [hasSlug]="true" />
+         }
         }
 
         <div class="bar">

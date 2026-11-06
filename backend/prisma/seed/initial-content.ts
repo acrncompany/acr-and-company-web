@@ -99,6 +99,7 @@ function buildBlocks(): Block[] {
     link('home', 'hero.secondary_cta_url', 'Hero: second button link', H.hero.secondaryCta.path),
     // alt is required on Media; the original hero alt was empty (decorative), so it gets a plain description
     img('home', 'hero.background', 'Hero: background image', { src: H.hero.background.src, alt: 'ACR & Company hero background' }),
+    t('home', 'hero.background_opacity', 'Hero: background image visibility (%)', '100'),
     ...heading('home', 'core_services', 'Our Core Services', H.coreServices.heading),
     ...heading('home', 'why_choose', 'Why Choose', H.whyChoose.heading),
     img('home', 'why_choose.image', 'Why Choose: image', H.whyChoose.image),
@@ -127,7 +128,6 @@ function buildBlocks(): Block[] {
     t('services', 'cta.title', 'Bottom band: title', S.cta.title),
     t('services', 'cta.text', 'Bottom band: text', S.cta.text, 'TEXTAREA'),
     t('services', 'cta.button_label', 'Bottom band: button label', S.cta.buttonLabel),
-    link('services', 'cta.button_url', 'Bottom band: button link', S.cta.path),
 
     // ---- learning
     ...heading('learning', 'hero', 'Hero', L.hero),
@@ -171,6 +171,7 @@ function buildBlocks(): Block[] {
     t('contact', 'form.success_message', 'Form: thank-you message', K.form.successMessage, 'TEXTAREA'),
     t('contact', 'form.error_message', 'Form: message when sending fails', 'Sorry, your message could not be sent. Please try again in a moment, or call or email us.', 'TEXTAREA'),
     t('contact', 'form.too_many_message', 'Form: message when a visitor sends too many', 'You have sent several messages in a short time. Please wait a few minutes and try again.', 'TEXTAREA'),
+    t('contact', 'form.service_options', 'Service interested in: choices (one per line)', '', 'TEXTAREA'),
     t('contact', 'address_title', 'Office address: heading', K.addressTitle),
     t('contact', 'hours_title', 'Business hours: heading', K.hoursTitle),
     t('contact', 'map.title', 'Map: accessible title', K.map.title),
@@ -201,7 +202,6 @@ const HELP_OVERRIDES: Record<string, string> = {
   'home.faq.aside_icon': 'Name of the small icon in the box next to the questions (for example help-circle).',
   'home.faq.aside_text': 'The text in the box next to the questions.',
   'about.story.paragraphs': 'The story text. Leave one blank line between paragraphs.',
-  'services.cta.button_url': 'Where the button goes. Use /contact to open the contact page.',
   'services.cta.text': 'The sentence under the heading in the box at the bottom of the Services page.',
   'consultation.subtitle': 'The short sentence under the heading of the "Book a Consultation" pop-up.',
   'services.all_label': 'The first filter tab, which shows every service group.',

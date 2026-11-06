@@ -20,7 +20,7 @@ import { PageHeader } from '../../shared/page-header';
   selector: 'app-inbox-applications',
   imports: [DatePipe, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatProgressSpinnerModule, MatSelectModule, MatSlideToggleModule, PageHeader],
   template: `
-    <app-page-header title="Job applications" help="People who applied from a job page. Open an application to read it and download the CV." />
+    <app-page-header title="Job applications" help="People who applied from a job page. Open an application to read it." />
 
     <div class="filters">
       <mat-form-field appearance="outline" class="job">
@@ -58,11 +58,11 @@ import { PageHeader } from '../../shared/page-header';
                 <dt>Name</dt><dd>{{ a.name }}</dd>
                 <dt>Email</dt><dd><a [href]="'mailto:' + a.email">{{ a.email }}</a></dd>
                 @if (a.phone) { <dt>Phone</dt><dd><a [href]="'tel:' + a.phone">{{ a.phone }}</a></dd> }
-                @if (a.message) { <dt>Message</dt><dd class="msg">{{ a.message }}</dd> }
-                <dt>CV</dt><dd>{{ a.cvOriginalName }}</dd>
+                @if (a.message) { <dt>Cover note</dt><dd class="msg">{{ a.message }}</dd> }
+                @if (a.cvOriginalName) { <dt>CV</dt><dd>{{ a.cvOriginalName }}</dd> }
               </dl>
               <div class="actions">
-                <a mat-flat-button [href]="cvUrl(a)" download><mat-icon>download</mat-icon> Download CV</a>
+                @if (a.cvOriginalName) { <a mat-flat-button [href]="cvUrl(a)" download><mat-icon>download</mat-icon> Download CV</a> }
                 <button mat-stroked-button type="button" (click)="setRead(a, !a.isRead)"><mat-icon>{{ a.isRead ? 'mark_email_unread' : 'drafts' }}</mat-icon> {{ a.isRead ? 'Mark as unread' : 'Mark as read' }}</button>
                 <button mat-stroked-button type="button" class="danger-outline" (click)="remove(a)"><mat-icon>delete</mat-icon> Delete</button>
               </div>

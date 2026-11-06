@@ -9,8 +9,7 @@ import { CountUp } from '../../../shared/count-up/count-up';
   template: `
     @let h = hero();
     <section class="hero" aria-labelledby="hero-title">
-      <img class="hero__bg" [src]="h.background.src" [alt]="h.background.alt" fetchpriority="high" />
-      <div class="hero__overlay"></div>
+      <img class="hero__bg" [src]="h.background.src" [alt]="h.background.alt" [style.opacity]="(h.backgroundOpacity ?? 100) / 100" fetchpriority="high" />
       <div class="container hero__inner">
         <p class="hero__eyebrow">{{ h.eyebrow }}</p>
         <h1 class="hero__title" id="hero-title">
@@ -42,6 +41,7 @@ import { CountUp } from '../../../shared/count-up/count-up';
       align-items: center;
       min-height: 560px;
       overflow: hidden;
+      background: hsl(213 73% 15%);
       color: $white;
 
       @include up($bp-md) {
@@ -54,11 +54,6 @@ import { CountUp } from '../../../shared/count-up/count-up';
       width: 100%;
       height: 100%;
       object-fit: cover;
-    }
-    .hero__overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to right, hsl(213 73% 15% / 0.88), hsl(213 73% 15% / 0.7));
     }
     .hero__inner {
       position: relative;

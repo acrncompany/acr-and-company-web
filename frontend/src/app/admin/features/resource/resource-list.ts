@@ -28,6 +28,9 @@ interface Group {
  * Generic list screen. Everything (columns, filters, ordering...) comes from the resource description in core/resources.ts.
  * Rows can be re-ordered (drag handle or arrows), published/hidden and deleted (with confirmation).
  */
+/** Last loaded rows of each list, so going back to a list does not show the loading spinner again. */
+const LIST_CACHE = new Map<string, any[]>();
+
 @Component({
   selector: 'app-resource-list',
   imports: [CdkDropList, CdkDrag, CdkDragHandle, RouterLink, MatButtonModule, MatButtonToggleModule, MatCardModule, MatChipsModule, MatFormFieldModule, MatIconModule, MatMenuModule, MatProgressSpinnerModule, MatSelectModule, PageHeader, Icon, AdminUrlPipe],
@@ -191,14 +194,20 @@ export class ResourceList implements OnInit {
   }
 
   async load() {
-    this.loading.set(true);
+    const query: Record<string, unknown> = { ...this.config.fixed };
+    if (this.statusFilter()) query['status'] = this.statusFilter();
+    if (this.categoryFilter()) query['categoryId'] = this.categoryFilter();
+    // A list seen before shows at once from memory; the fresh copy replaces it quietly.
+    const cacheKey = this.config.endpoint + JSON.stringify(query);
+    const cached = LIST_CACHE.get(cacheKey);
+    if (cached) this.items.set(cached);
+    this.loading.set(!cached);
     try {
-      const query: Record<string, unknown> = { ...this.config.fixed };
-      if (this.statusFilter()) query['status'] = this.statusFilter();
-      if (this.categoryFilter()) query['categoryId'] = this.categoryFilter();
-      this.items.set(await firstValueFrom(this.api.get<any[]>(this.config.endpoint, query)));
+      const rows = await firstValueFrom(this.api.get<any[]>(this.config.endpoint, query));
+      LIST_CACHE.set(cacheKey, rows);
+      this.items.set(rows);
     } catch (e) {
-      this.notify.error(e);
+      if (!cached) this.notify.error(e);
     } finally {
       this.loading.set(false);
     }

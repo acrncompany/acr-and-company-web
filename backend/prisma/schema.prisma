@@ -134,6 +134,11 @@ model SiteSettings {
   footerCopyright   String @db.VarChar(300) // shown after the © year: "ACR & Company. All Rights Reserved."
   footerTaglines    String @db.Text // one per row: Chartered Accountants / Business Consultants / Tax Advisors
 
+  // social profile addresses shown as icons in the footer ("" = not set, icon hidden)
+  facebookUrl  String @default("") @db.VarChar(500)
+  instagramUrl String @default("") @db.VarChar(500)
+  linkedinUrl  String @default("") @db.VarChar(500)
+
   // site-level SEO + JSON-LD
   titleSuffix            String @db.VarChar(200) // "Page — suffix"
   defaultMetaDescription String @db.VarChar(400)
@@ -152,14 +157,6 @@ model SiteSettings {
   logo      Media? @relation("SettingsLogo", fields: [logoId], references: [id], onDelete: NoAction)
   favicon   Media? @relation("SettingsFavicon", fields: [faviconId], references: [id], onDelete: NoAction)
   defaultOg Media? @relation("SettingsOg", fields: [defaultOgImageId], references: [id], onDelete: NoAction)
-}
-
-model SocialLink {
-  id        Int     @id @default(autoincrement())
-  platform  String  @db.VarChar(50) // linkedin, facebook, instagram, x, youtube...
-  url       String  @db.VarChar(500)
-  visible   Boolean @default(true)
-  sortOrder Int     @default(0)
 }
 
 // Header links and footer "quick links". The Services mega-menu and the footer Services list are NOT stored
@@ -416,6 +413,7 @@ model ContactMessage {
   id            Int         @id @default(autoincrement())
   type          MessageType
   name          String      @db.VarChar(150)
+  company       String?     @db.VarChar(150) // contact form only (optional)
   email         String?     @db.VarChar(200) // consultation modal has no email
   phone         String?     @db.VarChar(50)
   service       String?     @db.VarChar(200) // the chosen "Service interested in" (text as chosen)

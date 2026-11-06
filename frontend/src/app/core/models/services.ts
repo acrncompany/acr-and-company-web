@@ -29,5 +29,5 @@ export interface ServicesPageContent {
   /** Label of the filter tab that shows every group. */
   allLabel: string;
   groups: ServiceGroup[];
-  cta: CtaContent;
+  cta: Omit<CtaContent, 'path'>;
 }

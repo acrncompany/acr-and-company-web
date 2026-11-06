@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { prefetchResolver } from './core/api/prefetch.resolver';
 import { Shell } from './layout/shell/shell';
 
 const placeholder = () => import('./features/placeholder/placeholder-page').then((m) => m.PlaceholderPage);
@@ -23,42 +24,50 @@ export const routes: Routes = [
         path: '',
         pathMatch: 'full',
         loadComponent: () => import('./features/home/home-page').then((m) => m.HomePage),
-        data: { seo: 'home' },
+        data: { seo: 'home', prefetch: 'pages/home' },
+        resolve: { prefetch: prefetchResolver },
       },
       {
         path: 'about',
         loadComponent: () => import('./features/about/about-page').then((m) => m.AboutPage),
-        data: { seo: 'about' },
+        data: { seo: 'about', prefetch: 'pages/about' },
+        resolve: { prefetch: prefetchResolver },
       },
       {
         path: 'services',
         loadComponent: () => import('./features/services/services-page').then((m) => m.ServicesPage),
-        data: { seo: 'services' },
+        data: { seo: 'services', prefetch: 'pages/services' },
+        resolve: { prefetch: prefetchResolver },
       },
       {
         path: 'learning',
         loadComponent: () => import('./features/learning/learning-page').then((m) => m.LearningPage),
-        data: { seo: 'learning' },
+        data: { seo: 'learning', prefetch: 'pages/learning' },
+        resolve: { prefetch: prefetchResolver },
       },
       {
         path: 'learning/:slug',
         loadComponent: () => import('./features/learning/article-page').then((m) => m.ArticlePage),
-        data: { seo: 'learning', seoParam: 'slug' },
+        data: { seo: 'learning', seoParam: 'slug', prefetch: ['pages/learning'], prefetchOrNull: ['learning/:slug'] },
+        resolve: { prefetch: prefetchResolver },
       },
       {
         path: 'careers',
         loadComponent: () => import('./features/careers/careers-page').then((m) => m.CareersPage),
-        data: { seo: 'careers' },
+        data: { seo: 'careers', prefetch: 'pages/careers' },
+        resolve: { prefetch: prefetchResolver },
       },
       {
         path: 'careers/:slug',
         loadComponent: () => import('./features/careers/job-page').then((m) => m.JobPage),
-        data: { seo: 'careers', seoParam: 'slug' },
+        data: { seo: 'careers', seoParam: 'slug', prefetch: ['pages/careers'], prefetchOrNull: ['jobs/:slug'] },
+        resolve: { prefetch: prefetchResolver },
       },
       {
         path: 'contact',
         loadComponent: () => import('./features/contact/contact-page').then((m) => m.ContactPage),
-        data: { seo: 'contact' },
+        data: { seo: 'contact', prefetch: 'pages/contact' },
+        resolve: { prefetch: prefetchResolver },
       },
       { path: '**', loadComponent: placeholder, data: { heading: 'Page not found', notFound: true } },
     ],

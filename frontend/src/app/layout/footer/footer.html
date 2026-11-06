@@ -70,6 +70,17 @@
             <a [href]="'tel:' + s.contact.phoneRaw">{{ s.contact.phone }}</a>
           </li>
         </ul>
+        @if (s.socialLinks.length) {
+          <ul class="social" aria-label="Social media">
+            @for (l of s.socialLinks; track l.platform) {
+              <li>
+                <a [href]="l.url" [attr.target]="l.url === '#' ? null : '_blank'" rel="noopener noreferrer" [attr.aria-label]="l.platform">
+                  <app-icon [name]="$any(l.platform)" [size]="18" />
+                </a>
+              </li>
+            }
+          </ul>
+        }
       </div>
     </div>
 

@@ -32,7 +32,8 @@ import { MediaPickerDialog } from './media-picker.dialog';
             <button mat-stroked-button type="button" (click)="choose()">
               <mat-icon>photo_library</mat-icon> {{ media() ? 'Change picture' : 'Choose picture' }}
             </button>
-            @if (media()) {
+            @if (media(); as m) {
+              <a mat-button [href]="m.url" target="_blank" rel="noopener"><mat-icon>visibility</mat-icon> View</a>
               <button mat-button type="button" (click)="clear()"><mat-icon>close</mat-icon> Remove</button>
             }
           </div>

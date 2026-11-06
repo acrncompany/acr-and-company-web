@@ -133,7 +133,7 @@ export class ApplicationsController {
     const app = await this.prisma.jobApplication.findUnique({ where: { id } });
     if (!app) return;
     await this.prisma.jobApplication.delete({ where: { id } });
-    await fs.promises.rm(this.cvPath(app.cvFile), { force: true }); // the CV goes with the application
+    if (app.cvFile) await fs.promises.rm(this.cvPath(app.cvFile), { force: true }); // the CV goes with the application
   }
 
   @Get(':id/cv')

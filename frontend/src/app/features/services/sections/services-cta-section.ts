@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { CtaContent } from '../../../core/models/site';
+import { ConsultationModalService } from '../../../core/services/consultation-modal.service';
 import { Reveal } from '../../../shared/reveal/reveal';
 
 @Component({
   selector: 'app-services-cta-section',
-  imports: [RouterLink, Reveal],
+  imports: [Reveal],
   template: `
     @let c = cta();
     <section class="cta">
@@ -13,7 +13,7 @@ import { Reveal } from '../../../shared/reveal/reveal';
         <div class="cta__box" [appReveal]="0">
           <h2 class="cta__title">{{ c.title }}</h2>
           <p class="cta__text">{{ c.text }}</p>
-          <a class="btn btn--gold" [routerLink]="c.path">{{ c.buttonLabel }}</a>
+          <button type="button" class="btn btn--gold" (click)="modal.open()">{{ c.buttonLabel }}</button>
         </div>
       </div>
     </section>
@@ -57,5 +57,6 @@ import { Reveal } from '../../../shared/reveal/reveal';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServicesCtaSection {
-  readonly cta = input.required<CtaContent>();
+  protected readonly modal = inject(ConsultationModalService);
+  readonly cta = input.required<Omit<CtaContent, 'path'>>();
 }

@@ -49,12 +49,12 @@ export class FormsService {
   async contact(dto: ContactDto) {
     if (this.isBot(dto, 'contact')) return { ok: true };
     const m = await this.prisma.contactMessage.create({
-      data: { type: MessageType.CONTACT, name: dto.name, email: dto.email, phone: dto.phone, service: dto.service || null, message: dto.message },
+      data: { type: MessageType.CONTACT, name: dto.name, company: dto.company || null, email: dto.email, phone: dto.phone, service: dto.service || null, message: dto.message },
     });
     const s = await this.settings();
     const subject = `New contact message from ${dto.name}`;
     const { text, html } = alertMail(subject, [
-      ['Name', dto.name], ['Email', dto.email], ['Phone', dto.phone], ['Service', dto.service], ['Message', dto.message],
+      ['Name', dto.name], ['Company', dto.company], ['Email', dto.email], ['Phone', dto.phone], ['Service', dto.service], ['Message', dto.message],
     ], `/admin/inbox/messages?open=${m.id}`);
     void this.mail.send({ to: s?.notificationEmail ?? '', subject, text, html, replyTo: dto.email });
     return { ok: true };
@@ -85,28 +85,31 @@ export class FormsService {
     });
     if (!job) throw new NotFoundException({ code: 'job_closed', message: 'This position is no longer open.' });
 
-    const cv = checkCv(file);
-    const stored = `${randomUUID()}${cv.ext}`;
-    fs.mkdirSync(cvDir(), { recursive: true });
-    await fs.promises.writeFile(path.join(cvDir(), stored), file!.buffer, { flag: 'wx' });
+    // The CV is optional: the website form no longer asks for one, but a file that is sent is still checked and stored.
+    const cv = file ? checkCv(file) : null;
+    const stored = cv ? `${randomUUID()}${cv.ext}` : '';
+    if (cv) {
+      fs.mkdirSync(cvDir(), { recursive: true });
+      await fs.promises.writeFile(path.join(cvDir(), stored), file!.buffer, { flag: 'wx' });
+    }
 
     let app;
     try {
       app = await this.prisma.jobApplication.create({
         data: {
           jobId: job.id, jobTitle: job.title, name: dto.name, email: dto.email, phone: dto.phone, message: dto.message || null,
-          cvFile: stored, cvOriginalName: cv.originalName, cvMimeType: cv.mimeType,
+          cvFile: stored, cvOriginalName: cv?.originalName ?? '', cvMimeType: cv?.mimeType ?? '',
         },
       });
     } catch (e) {
-      await fs.promises.rm(path.join(cvDir(), stored), { force: true }); // no database row: do not keep an orphan file
+      if (stored) await fs.promises.rm(path.join(cvDir(), stored), { force: true }); // no database row: do not keep an orphan file
       throw e;
     }
 
     const s = await this.settings();
     const subject = `New application: ${job.title} - ${dto.name}`;
     const { text, html } = alertMail(`New application for ${job.title}`, [
-      ['Position', job.title], ['Name', dto.name], ['Email', dto.email], ['Phone', dto.phone], ['Message', dto.message], ['CV', cv.originalName],
+      ['Position', job.title], ['Name', dto.name], ['Email', dto.email], ['Phone', dto.phone], ['Cover note', dto.message], ['CV', cv?.originalName ?? ''],
     ], `/admin/inbox/applications?open=${app.id}`);
     // The CV is not attached: it stays in private storage and is downloaded from the admin inbox by a logged-in admin.
     void this.mail.send({ to: job.applyEmail || s?.careersEmail || '', subject, text, html, replyTo: dto.email });

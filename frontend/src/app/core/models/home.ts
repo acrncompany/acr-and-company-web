@@ -24,6 +24,8 @@ export interface HeroContent {
   secondaryCta: NavLink;
   stats: HeroStat[];
   background: ImageRef;
+  /** 0-100: how visible the background image is (100 = fully). */
+  backgroundOpacity?: number;
 }
 
 export interface IconItem {

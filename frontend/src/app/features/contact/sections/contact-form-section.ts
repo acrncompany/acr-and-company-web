@@ -35,6 +35,18 @@ import { Reveal } from '../../../shared/reveal/reveal';
           </div>
 
           <div class="field">
+            <label class="field__label" for="c-company">Company Name</label>
+            <input
+              class="field__control"
+              id="c-company"
+              type="text"
+              formControlName="company"
+              autocomplete="organization"
+              placeholder="Your company name"
+            />
+          </div>
+
+          <div class="field">
             <label class="field__label" for="c-email">Email</label>
             <input
               class="field__control"
@@ -160,6 +172,7 @@ export class ContactFormSection {
 
   protected readonly enquiry = inject(FormBuilder).nonNullable.group({
     name: ['', Validators.required],
+    company: [''],
     email: ['', [Validators.required, Validators.email]],
     phone: ['', [Validators.required, Validators.pattern(/^\+?[\d\s-]{8,15}$/)]],
     service: [''],

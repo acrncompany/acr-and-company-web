@@ -1,14 +1,14 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { JobOpening } from '../../../core/models/careers';
+import { ChangeDetectionStrategy, Component, computed, HostListener, input, signal } from '@angular/core';
+import { ApplyFormContent, JobOpening } from '../../../core/models/careers';
 import { Icon } from '../../../shared/icon/icon';
 import { Reveal } from '../../../shared/reveal/reveal';
+import { JobApplicationForm } from './job-application-form';
 
 /** Department filter tabs plus a card per opening. The first tab (null) shows every opening. */
 @Component({
   selector: 'app-openings-section',
-  imports: [DatePipe, RouterLink, Icon, Reveal],
+  imports: [DatePipe, Icon, Reveal, JobApplicationForm],
   template: `
     <section class="openings" aria-labelledby="openings-title">
       <div class="container">
@@ -53,8 +53,7 @@ import { Reveal } from '../../../shared/reveal/reveal';
                   </li>
                 </ul>
                 <div class="job__actions">
-                  <a class="btn btn--gold" [routerLink]="['/careers', o.slug]" fragment="apply">{{ applyLabel() }}</a>
-                  <a class="job__details" [routerLink]="['/careers', o.slug]">{{ detailsLabel() }}</a>
+                  <button type="button" class="btn btn--gold" (click)="applying.set(o)">{{ applyLabel() }}</button>
                 </div>
               </article>
             </li>
@@ -62,6 +61,24 @@ import { Reveal } from '../../../shared/reveal/reveal';
         </ul>
       </div>
     </section>
+
+    @if (applying(); as job) {
+      <div class="modal" (click)="close()" (keydown.escape)="close()">
+        <div
+          class="modal__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="apply-modal-title"
+          (click)="$event.stopPropagation()"
+        >
+          <button type="button" class="modal__close" aria-label="Close" (click)="close()">
+            <app-icon name="close" [size]="18" />
+          </button>
+          <h2 class="modal__title" id="apply-modal-title">Apply for {{ job.title }}</h2>
+          <app-job-application-form [content]="apply()" [jobSlug]="job.slug" [embedded]="true" />
+        </div>
+      </div>
+    }
   `,
   styles: `
     @use 'variables' as *;
@@ -195,6 +212,51 @@ import { Reveal } from '../../../shared/reveal/reveal';
       gap: 12px 20px;
       margin-top: auto;
     }
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-y: auto;
+      background: hsl(222 47% 11% / 0.6);
+    }
+    .modal__panel {
+      position: relative;
+      width: 100%;
+      max-width: 560px;
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+      padding: 28px 30px 30px;
+      background: $white;
+      border-radius: 14px;
+      box-shadow: 0 20px 50px hsl(222 47% 11% / 0.3);
+    }
+    .modal__title {
+      margin: 0 36px 20px 0;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: $navy;
+    }
+    .modal__close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      display: inline-flex;
+      padding: 6px;
+      color: $muted;
+      background: none;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &:hover {
+        color: $navy;
+      }
+    }
     .job__details {
       font-size: 14px;
       font-weight: 500;
@@ -214,6 +276,15 @@ export class OpeningsSection {
   readonly allLabel = input.required<string>();
   readonly applyLabel = input.required<string>();
   readonly detailsLabel = input.required<string>();
+  readonly apply = input.required<ApplyFormContent>();
+
+  /** The opening whose application modal is open, or null. */
+  protected readonly applying = signal<JobOpening | null>(null);
+
+  @HostListener('document:keydown.escape')
+  protected close(): void {
+    this.applying.set(null);
+  }
 
   /** Selected department, or null for "all". */
   protected readonly selected = signal<string | null>(null);

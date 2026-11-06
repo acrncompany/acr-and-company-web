@@ -15,10 +15,6 @@ const dates = (...fields: string[]) => (data: any) => {
   return data;
 };
 
-export const SocialLinksController = crudController({
-  path: 'social-links', model: 'socialLink', createDto: d.SocialLinkDto, updateDto: d.UpdateSocialLinkDto, sortable: true,
-});
-
 export const MenuItemsController = crudController({
   path: 'menu-items', model: 'menuItem', createDto: d.MenuItemDto, updateDto: d.UpdateMenuItemDto, sortable: true,
   filters: ['location'], orderBy: [{ location: 'asc' }, { sortOrder: 'asc' }],
@@ -103,7 +99,7 @@ export const JobsController = crudController({
 });
 
 export const resourceControllers = [
-  SocialLinksController, MenuItemsController, PagesController, ContentBlocksController, StatsController,
+  MenuItemsController, PagesController, ContentBlocksController, StatsController,
   FeatureItemsController, FaqsController, IndustriesController, LocationsController, TeamMembersController,
   ServiceCategoriesController, ServicesController, PostCategoriesController, PostsController,
   DepartmentsController, JobsController,

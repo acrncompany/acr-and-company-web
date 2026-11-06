@@ -7,12 +7,13 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { FieldDef } from '../core/resources';
 import { IconField } from './icon-field';
 import { ImageField } from './image-field';
+import { LinesField } from './lines-field';
 import { RichText } from './rich-text';
 
 /** Draws one form field from its description in core/resources.ts (text box, picture picker, rich editor, ...). */
 @Component({
   selector: 'app-field',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatSlideToggleModule, ImageField, IconField, RichText],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatSlideToggleModule, ImageField, IconField, RichText, LinesField],
   template: `
     @let d = def();
     @let c = control();
@@ -22,6 +23,9 @@ import { RichText } from './rich-text';
       }
       @case ('icon') {
         <app-icon-field [control]="$any(c)" [label]="d.label" [hint]="d.hint ?? ''" />
+      }
+      @case ('lines') {
+        <app-lines-field [control]="$any(c)" [label]="d.label" [hint]="d.hint ?? ''" />
       }
       @case ('richtext') {
         <app-rich-text [control]="$any(c)" [label]="d.label" [hint]="d.hint ?? ''" />

@@ -22,6 +22,7 @@ export interface ContactMessage {
   service: string | null;
   message: string | null;
   preferredTime: string | null;
+  company?: string | null;
   isRead: boolean;
   createdAt: string;
 }

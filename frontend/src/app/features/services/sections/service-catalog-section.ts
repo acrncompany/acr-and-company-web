@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ConsultationModalService } from '../../../core/services/consultation-modal.service';
 import { ServiceGroup } from '../../../core/models/services';
 import { Icon } from '../../../shared/icon/icon';
 import { Reveal } from '../../../shared/reveal/reveal';
@@ -7,7 +7,7 @@ import { Reveal } from '../../../shared/reveal/reveal';
 /** Filter tabs plus one block of cards per service group. The first tab (null) shows every group. */
 @Component({
   selector: 'app-service-catalog-section',
-  imports: [RouterLink, Icon, Reveal],
+  imports: [Icon, Reveal],
   template: `
     <section class="catalog">
       <div class="container">
@@ -46,9 +46,9 @@ import { Reveal } from '../../../shared/reveal/reveal';
                   <div class="card">
                     <h3 class="card__title">{{ item.title }}</h3>
                     <p class="card__text">{{ item.description }}</p>
-                    <a class="card__link" routerLink="/contact">
+                    <button type="button" class="card__link" (click)="modal.open()">
                       Get Started <app-icon name="chevron-right" [size]="14" />
-                    </a>
+                    </button>
                   </div>
                 </li>
               }
@@ -186,6 +186,10 @@ import { Reveal } from '../../../shared/reveal/reveal';
       align-self: flex-start;
       margin-top: auto;
       padding-top: 10px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      font-family: inherit;
       font-size: 13px;
       font-weight: 500;
       color: $gold-dark;
@@ -198,6 +202,7 @@ import { Reveal } from '../../../shared/reveal/reveal';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServiceCatalogSection {
+  protected readonly modal = inject(ConsultationModalService);
   readonly groups = input.required<ServiceGroup[]>();
   readonly allLabel = input.required<string>();
 

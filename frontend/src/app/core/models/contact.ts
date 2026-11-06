@@ -62,6 +62,7 @@ export interface EnquiryRequest {
   /** Honeypot: stays empty for people (the field is invisible). */
   website?: string;
   name: string;
+  company: string;
   email: string;
   phone: string;
   service: string;

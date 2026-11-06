@@ -15,6 +15,7 @@ export class HoneypotDto {
 
 export class ContactDto extends HoneypotDto {
   @Transform(trim) @IsString() @MinLength(1) @MaxLength(150) name: string;
+  @Transform(trim) @IsOptional() @IsString() @MaxLength(150) company?: string;
   @Transform(trim) @IsEmail() @MaxLength(200) email: string;
   @Transform(trim) @Matches(PHONE) phone: string;
   @Transform(trim) @IsOptional() @IsString() @MaxLength(200) service?: string;
